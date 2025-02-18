@@ -8,7 +8,7 @@ import gspread
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 
 # 使用本地路径加载 Google OAuth 凭证
-credentials_path = r"D:\BHSFIC\cs 瞎捣鼓\menu-order\client_secret_1_682235424465-6i6t430ike7boi8l7o08ajees54m2imt.apps.googleusercontent.com.json"
+credentials_path = r"D:/BHSFIC/cs 瞎捣鼓/menu-order/client_secret_682235424465-6i6t430ike7boi8l7o08ajees54m2imt.apps.googleusercontent.com (1).json"
 
 # 检查凭证文件是否存在
 if not os.path.exists(credentials_path):
