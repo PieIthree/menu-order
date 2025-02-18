@@ -1,3 +1,4 @@
+import os
 import json
 from oauth2client.service_account import ServiceAccountCredentials
 import streamlit as st
@@ -7,8 +8,14 @@ import gspread
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 
 # 使用本地路径加载 Google OAuth 凭证
-credentials_path = "D:/BHSFIC/cs 瞎捣鼓/menu-order/client_secret_1_682235424465-6i6t430ike7boi8l7o08ajees54m2imt.apps.googleusercontent.com.json"
+credentials_path = r"D:\BHSFIC\cs 瞎捣鼓\menu-order\client_secret_1_682235424465-6i6t430ike7boi8l7o08ajees54m2imt.apps.googleusercontent.com.json"
 
+# 检查凭证文件是否存在
+if not os.path.exists(credentials_path):
+    st.error(f"Credentials file not found at: {credentials_path}")
+    st.stop()  # 停止执行
+
+# 加载凭证文件
 try:
     creds = ServiceAccountCredentials.from_json_keyfile_name(credentials_path, scope)
 except Exception as e:
