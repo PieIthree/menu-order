@@ -24,7 +24,20 @@ if st.button("Add"):
         sheet.append_row([dish])  # 添加到 Google Sheets
         st.success(f"✅ Added: {dish}")
 
-# 显示当前菜单
+# 删除按钮
+# 显示当前菜单并提供删除选项
 st.subheader("📜 Current Menu")
-st.write(menu_list)
+if menu_list:
+    for i, dish_name in enumerate(menu_list, start=1):  # 遍历菜单，显示索引和菜名
+        col1, col2 = st.columns([4, 1])
+        with col1:
+            st.write(f"{i}. {dish_name}")  # 显示菜名和索引
+        with col2:
+            if st.button(f"Delete {dish_name}", key=i):  # 为每道菜添加删除按钮
+                # 删除菜品的操作
+                sheet.delete_rows(i)  # 删除 Google Sheets 中的该行
+                st.success(f"❌ Deleted: {dish_name}")  # 显示删除提示
+                menu_list = sheet.col_values(1)  # 更新菜单列表
+else:
+    st.write("No menu items yet.")  # 如果菜单为空，显示提示信息
 
