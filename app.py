@@ -1,87 +1,53 @@
-import os
-import json
 import gspread
 import streamlit as st
-from google.oauth2.credentials import Credentials
-from google.auth.transport.requests import Request
-from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth import exceptions
+from google.oauth2.service_account import Credentials
 
-# 🔹 设置 Google Sheets API 凭证
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+# 🔹 Google Sheets API Scopes
+scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
 
-# 从 Streamlit Secrets 中读取 Google OAuth 凭证
-google_credentials = st.secrets["google_credentials"]
+# 🔹 Path to your service account credentials file
+creds_file = '/path/to/menu-order-451315-b0213b6ad336.json'
 
-# 将凭证信息转换为字典格式并保存为 json 文件
-credentials_dict = {
-    "installed": {
-        "client_id": google_credentials["client_id"],
-        "project_id": google_credentials["project_id"],
-        "auth_uri": google_credentials["auth_uri"],
-        "token_uri": google_credentials["token_uri"],
-        "auth_provider_x509_cert_url": google_credentials["auth_provider_x509_cert_url"],
-        "client_secret": google_credentials["client_secret"],
-        "redirect_uris": google_credentials["redirect_uris"],
-        "javascript_origins": google_credentials["javascript_origins"]
-    }
-}
+# 🔹 Load credentials from the service account file
+try:
+    creds = Credentials.from_service_account_file(creds_file, scopes=scope)
+    client = gspread.authorize(creds)
+    st.success("Successfully connected to Google Sheets!")
+except exceptions.GoogleAuthError as auth_error:
+    st.error(f"Authentication failed: {auth_error}")
+    st.stop()
 
-# 保存凭证到文件
-creds_file = 'token.json'
-with open(creds_file, 'w') as f:
-    json.dump(credentials_dict, f)
+# 🔹 Open the Google Sheets document
+try:
+    sheet = client.open("menu-order").sheet1  # Ensure the sheet is named `menu-order`
+    st.success("Successfully opened the Google Sheets file!")
+except gspread.exceptions.SpreadsheetNotFound:
+    st.error("The specified spreadsheet was not found.")
+    st.stop()
 
-# 🔹 处理 OAuth 2.0 授权流程
-creds = None
-
-# 如果 token.json 存在，加载凭证
-if os.path.exists(creds_file):
-    creds = Credentials.from_authorized_user_file(creds_file, scope)
-
-# 如果没有凭证或凭证过期，则执行授权流程
-if not creds or not creds.valid:
-    if creds and creds.expired and creds.refresh_token:
-        creds.refresh(Request())
-    else:
-        # 开始 OAuth 2.0 流程
-        flow = InstalledAppFlow.from_client_secrets_file(
-            creds_file, scope)
-        creds = flow.run_local_server(port=0)
-
-    # 保存凭证，以便下次使用
-    with open(creds_file, 'w') as token:
-        token.write(creds.to_json())
-
-# 🔹 连接到 Google Sheets
-client = gspread.authorize(creds)
-st.success("Successfully connected to Google Sheets!")
-
-# 🔹 打开 Google Sheets
-sheet = client.open("menu-order").sheet1  # 确保文件名为 `menu-order`
-st.success("Successfully opened the Google Sheets file!")
-
-# 🔹 读取已有菜单
-menu_list = sheet.col_values(1)  # 读取第一列（菜品列表）
+# 🔹 Reading the current menu (first column)
+menu_list = sheet.col_values(1)
 if menu_list:
     st.subheader("📜 Current Menu")
-    st.table(menu_list)  # 使用表格形式展示菜单
+    st.table(menu_list)
 else:
     st.write("The menu is currently empty. Please add some dishes!")
 
-# 页面标题
+# Page title
 st.title("🍽️ Menu Order")
 
-# 输入框
+# Input field for adding new dish
 dish = st.text_input("Enter the dish you want:")
 
-# 添加按钮
+# Add button
 if st.button("Add"):
     if dish:
         try:
-            sheet.append_row([dish])  # 将新菜品添加到 Google Sheets
+            sheet.append_row([dish])  # Append new dish to the Google Sheets
             st.success(f"✅ Added: {dish}")
-            menu_list.append(dish)  # 更新菜单列表
+            menu_list.append(dish)  # Update menu list displayed
         except Exception as e:
             st.error(f"Error adding dish to Google Sheets: {e}")
     else:
-        st.warning("Please enter a dish name.")  # 提示输入内容
+        st.warning("Please enter a dish name.")
