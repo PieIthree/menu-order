@@ -22,19 +22,30 @@ menu_list = sheet.col_values(1)        # 普通菜谱列表
 final_menu = final_sheet.col_values(1)   # 最终确定菜谱列表
 
 # ─────────────────────────────
-# 1. 显示最终确定菜谱（顶部）
+# 管理员密码配置
+admin_password = "stone6681"  # 请替换成你的管理员密码
+password_input = st.text_input("管理员密码：", type="password")
+
+# ─────────────────────────────
+# 1. 显示最终确定菜谱（顶部）并允许管理员删除
 st.header("✅ Finalized Menu")
 if final_menu:
     for i, item in enumerate(final_menu, start=1):
-        st.write(f"{i}. {item}")
+        col1, col2 = st.columns([4, 1])
+        with col1:
+            st.write(f"{i}. {item}")
+        with col2:
+            # 只有管理员登录后才显示删除按钮
+            if password_input == admin_password:
+                if st.button("Delete", key=f"final_delete_{i}"):
+                    final_sheet.delete_rows(i)
+                    st.success(f"❌ Deleted: {item}")
+                    st.experimental_rerun()  # 删除后刷新页面
 else:
     st.write("暂无最终确定的菜品。")
 
 # ─────────────────────────────
-# 2. 管理员区域：只有管理员才能添加最终确定的菜品
-admin_password = "stone6681"  # 请替换成你的管理员密码
-password_input = st.text_input("管理员密码：", type="password")
-
+# 2. 管理员区域：添加最终确定的菜品（仅管理员可操作）
 if password_input == admin_password:
     st.success("管理员已登录")
     final_item = st.text_input("添加最终确定的菜品：", key="final_input")
@@ -42,35 +53,33 @@ if password_input == admin_password:
         if final_item:
             final_sheet.append_row([final_item])
             st.success(f"✅ {final_item} 已添加到最终菜谱")
-            final_menu = final_sheet.col_values(1)  # 更新最终菜谱数据
+            st.experimental_rerun()
 else:
-    st.warning("请输入管理员密码以添加最终菜谱。")
+    st.warning("请输入管理员密码以添加或删除最终菜谱。")
 
 # ─────────────────────────────
-# 3. 普通用户区：添加和删除普通菜品
+# 3. 普通用户区：添加和删除待选菜品
 st.title("🍽️ Menu Order")
 
-# 添加菜品
+# 添加待选菜品
 dish = st.text_input("Enter the dish you want:", key="dish_input")
 if st.button("Add"):
     if dish:
         sheet.append_row([dish])
         st.success(f"✅ Added: {dish}")
+        st.experimental_rerun()
 
 # 显示当前待选菜单并提供删除按钮
 st.subheader("📜 Current Menu")
 if menu_list:
-    # 使用 for 循环展示每个菜品，并添加删除按钮
     for i, dish_name in enumerate(menu_list, start=1):
         col1, col2 = st.columns([4, 1])
         with col1:
             st.write(f"{i}. {dish_name}")
         with col2:
-            # 按钮的 key 使用 "delete_菜品序号" 保证唯一性
-            if st.button(f"Delete", key=f"delete_{i}"):
+            if st.button("Delete", key=f"delete_{i}"):
                 sheet.delete_rows(i)
                 st.success(f"❌ Deleted: {dish_name}")
-                # 删除后更新菜单数据
-                menu_list = sheet.col_values(1)
+                st.experimental_rerun()
 else:
     st.write("No menu items yet.")
