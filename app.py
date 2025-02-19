@@ -12,9 +12,6 @@ scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/au
 # 从 Streamlit Secrets 中读取 Google OAuth 凭证
 google_credentials = st.secrets["google_credentials"]
 
-# 保存凭证信息到本地文件
-creds_file = 'token.json'  # 用于存储用户的 OAuth 2.0 凭证
-
 # 将凭证信息转换为字典格式并保存为 json 文件
 credentials_dict = {
     "installed": {
@@ -29,24 +26,24 @@ credentials_dict = {
     }
 }
 
-# 写入文件
+# 保存凭证到文件
+creds_file = 'token.json'
 with open(creds_file, 'w') as f:
     json.dump(credentials_dict, f)
 
-# 从文件加载 OAuth 2.0 凭证
+# 🔹 处理 OAuth 2.0 授权流程
 creds = None
 
 # 如果 token.json 存在，加载凭证
-if creds_file and os.path.exists(creds_file):
+if os.path.exists(creds_file):
     creds = Credentials.from_authorized_user_file(creds_file, scope)
-    if creds and creds.expired and creds.refresh_token:
-        creds.refresh(Request())
 
 # 如果没有凭证或凭证过期，则执行授权流程
 if not creds or not creds.valid:
     if creds and creds.expired and creds.refresh_token:
         creds.refresh(Request())
     else:
+        # 开始 OAuth 2.0 流程
         flow = InstalledAppFlow.from_client_secrets_file(
             creds_file, scope)
         creds = flow.run_local_server(port=0)
