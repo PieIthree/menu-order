@@ -1,25 +1,14 @@
-import os
-import json
-import toml
 import streamlit as st
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-# 🔹 获取 Google Sheets API 凭证
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-
-# 从环境变量中读取 TOML 格式的凭证
-google_credentials_toml = os.getenv("GOOGLE_CREDENTIALS")
-credentials_info = toml.loads(google_credentials_toml)["GOOGLE_CREDENTIALS"]
-
-# 将 TOML 数据转换为 JSON 格式，供 oauth2client 使用
-creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials_info, scope)
-
 # 🔹 连接 Google Sheets
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+creds = ServiceAccountCredentials.from_json_keyfile_name("menu-order-451315-b0213b6ad336.json", scope)
 client = gspread.authorize(creds)
 
 # 🔹 打开 Google Sheets
-sheet = client.open("menu-order").sheet1  # 使用 `menu-order`
+sheet = client.open("menu-order").sheet1  # 使用表格名 menu-order
 
 # 🔹 读取已有菜单
 menu_list = sheet.col_values(1)  # 读取第一列（菜品列表）
@@ -38,3 +27,4 @@ if st.button("Add"):
 # 显示当前菜单
 st.subheader("📜 Current Menu")
 st.write(menu_list)
+
