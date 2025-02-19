@@ -1,53 +1,29 @@
-import gspread
 import streamlit as st
-from google.auth import exceptions
-from google.oauth2.service_account import Credentials
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
-# 🔹 Google Sheets API Scopes
-scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+# 🔹 连接 Google Sheets
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+creds = ServiceAccountCredentials.from_json_keyfile_name("你的_google_api_key.json", scope)
+client = gspread.authorize(creds)
 
-# 🔹 Path to your service account credentials file
-creds_file = '/path/to/menu-order-451315-b0213b6ad336.json'
+# 🔹 打开 Google Sheets
+sheet = client.open("menu-order").sheet1  # ✅ 使用 `menu-order`
 
-# 🔹 Load credentials from the service account file
-try:
-    creds = Credentials.from_service_account_file(creds_file, scopes=scope)
-    client = gspread.authorize(creds)
-    st.success("Successfully connected to Google Sheets!")
-except exceptions.GoogleAuthError as auth_error:
-    st.error(f"Authentication failed: {auth_error}")
-    st.stop()
+# 🔹 读取已有菜单
+menu_list = sheet.col_values(1)  # 读取第一列（菜品列表）
 
-# 🔹 Open the Google Sheets document
-try:
-    sheet = client.open("menu-order").sheet1  # Ensure the sheet is named `menu-order`
-    st.success("Successfully opened the Google Sheets file!")
-except gspread.exceptions.SpreadsheetNotFound:
-    st.error("The specified spreadsheet was not found.")
-    st.stop()
+st.title("🍽️ Menu Order")  # ✅ 使用 `Menu Order`
 
-# 🔹 Reading the current menu (first column)
-menu_list = sheet.col_values(1)
-if menu_list:
-    st.subheader("📜 Current Menu")
-    st.table(menu_list)
-else:
-    st.write("The menu is currently empty. Please add some dishes!")
-
-# Page title
-st.title("🍽️ Menu Order")
-
-# Input field for adding new dish
+# 输入框
 dish = st.text_input("Enter the dish you want:")
 
-# Add button
+# 添加按钮
 if st.button("Add"):
     if dish:
-        try:
-            sheet.append_row([dish])  # Append new dish to the Google Sheets
-            st.success(f"✅ Added: {dish}")
-            menu_list.append(dish)  # Update menu list displayed
-        except Exception as e:
-            st.error(f"Error adding dish to Google Sheets: {e}")
-    else:
-        st.warning("Please enter a dish name.")
+        sheet.append_row([dish])  # 添加到 Google Sheets
+        st.success(f"✅ Added: {dish}")
+
+# 显示当前菜单
+st.subheader("📜 Current Menu")
+st.write(menu_list)
