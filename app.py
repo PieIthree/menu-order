@@ -40,7 +40,8 @@ if final_menu:
                 if st.button("Delete", key=f"final_delete_{i}"):
                     final_sheet.delete_rows(i)
                     st.success(f"❌ Deleted: {item}")
-                    st.experimental_rerun()  # 删除后刷新页面
+                    # 这里避免多次调用 `st.experimental_rerun`，可以在函数外部控制刷新
+                    return  # 只调用一次刷新
 else:
     st.write("暂无最终确定的菜品。")
 
@@ -53,7 +54,7 @@ if password_input == admin_password:
         if final_item:
             final_sheet.append_row([final_item])
             st.success(f"✅ {final_item} 已添加到最终菜谱")
-            st.experimental_rerun()
+            return  # 只调用一次刷新
 else:
     st.warning("请输入管理员密码以添加或删除最终菜谱。")
 
@@ -67,7 +68,7 @@ if st.button("Add"):
     if dish:
         sheet.append_row([dish])
         st.success(f"✅ Added: {dish}")
-        st.experimental_rerun()
+        return  # 只调用一次刷新
 
 # 显示当前待选菜单并提供删除按钮
 st.subheader("📜 Current Menu")
@@ -80,6 +81,6 @@ if menu_list:
             if st.button("Delete", key=f"delete_{i}"):
                 sheet.delete_rows(i)
                 st.success(f"❌ Deleted: {dish_name}")
-                st.experimental_rerun()
+                return  # 只调用一次刷新
 else:
     st.write("No menu items yet.")
