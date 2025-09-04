@@ -1,0 +1,42 @@
+# ========== Python 编译缓存 ==========
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ========== 虚拟环境 ==========
+venv/
+env/
+.venv/
+ENV/
+
+# ========== 本地配置 / 环境 ==========
+*.env
+.env.*
+.venv
+.DS_Store
+
+# ========== Streamlit ==========
+.streamlit/secrets.toml
+
+# ========== Google Cloud / 凭据文件 ==========
+menu-order-451315-b0213b6ad336.json
+config.json
+*_service_account.json
+*_sa_key.json
+*.pem
+*.p12
+
+# ========== 日志 / 临时文件 ==========
+*.log
+*.tmp
+*.bak
+*.swp
+
+# ========== IDE 配置 ==========
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ========== 其他可能的文件 ==========
+node_modules/
